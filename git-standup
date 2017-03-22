@@ -4,7 +4,7 @@
 function usage() {
   cat <<EOS
 Usage:
-  git standup [-a <author name>] [-w <weekstart-weekend>] [-d <days-ago>] [-m <max-dir-depth>] [-g] [-h] [-f]
+  git standup [-a <author name>] [-w <weekstart-weekend>] [-d <days-ago>] [-m <max-dir-depth>] [-g] [-h] [-f] [-r]
 
   -a      - Specify author to restrict search to
   -w      - Specify weekday range to limit search to
@@ -15,6 +15,7 @@ Usage:
   -h      - Display this help screen
   -g      - Show if commit is GPG signed (G) or not (N)
   -f      - Fetch the latest commits beforehand
+  -r      - Reverse data order (oldest first)
 
 Examples:
   git standup -a "John Doe" -w "MON-FRI" -m 3
@@ -53,9 +54,9 @@ function uncolored() {
   fi
 }
 
-while getopts "hgfd:a:w:m:D:L" opt; do
+while getopts "hrgfd:a:w:m:D:L" opt; do
   case $opt in
-    h|d|a|w|m|g|D|f|L)
+    h|d|r|a|w|m|g|D|f|L)
       declare "option_$opt=${OPTARG:-0}"
       ;;
     \?)
@@ -99,6 +100,7 @@ AUTHOR=`git config user.name`
 SINCE="yesterday"
 MAXDEPTH=2
 INCLUDE_LINKS=
+REVERSE=
 
 if [[ $option_a ]] ; then
   # In case the parameter
@@ -136,6 +138,10 @@ else
   fi
 fi
 
+if [[ $option_r ]] ; then
+  REVERSE="--date-order --reverse"
+fi
+
 GIT_DATE_FORMAT=${option_D:-relative}
 
 GIT_LOG_COMMAND="git --no-pager log \
@@ -146,7 +152,8 @@ GIT_LOG_COMMAND="git --no-pager log \
     --abbrev-commit
     --oneline
     --pretty=format:'$GIT_PRETTY_FORMAT'
-    --date='$GIT_DATE_FORMAT'"
+    --date='$GIT_DATE_FORMAT'
+    $REVERSE"
 
 
 ## For when the command has been run in a non-repo directory
