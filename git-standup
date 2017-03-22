@@ -12,6 +12,7 @@ Usage:
   -L      - Toggle inclusion of symbolic links in recursive directory search
   -d      - Specify the number of days back to include
   -D      - Specify the date format for "git log" (default: relative)
+  -s      - Simple format
   -h      - Display this help screen
   -g      - Show if commit is GPG signed (G) or not (N)
   -f      - Fetch the latest commits beforehand
@@ -54,9 +55,9 @@ function uncolored() {
   fi
 }
 
-while getopts "hrgfd:a:w:m:D:L" opt; do
+while getopts "hrsgfd:a:w:m:D:L" opt; do
   case $opt in
-    h|d|r|a|w|m|g|D|f|L)
+    h|d|r|s|a|w|m|g|D|f|L)
       declare "option_$opt=${OPTARG:-0}"
       ;;
     \?)
@@ -101,6 +102,7 @@ SINCE="yesterday"
 MAXDEPTH=2
 INCLUDE_LINKS=
 REVERSE=
+SIMPLE=
 
 if [[ $option_a ]] ; then
   # In case the parameter
@@ -142,6 +144,10 @@ if [[ $option_r ]] ; then
   REVERSE="--date-order --reverse"
 fi
 
+if [[ $option_s ]] ; then
+  SIMPLE="--format=\"%s\""
+fi
+
 GIT_DATE_FORMAT=${option_D:-relative}
 
 GIT_LOG_COMMAND="git --no-pager log \
@@ -153,7 +159,7 @@ GIT_LOG_COMMAND="git --no-pager log \
     --oneline
     --pretty=format:'$GIT_PRETTY_FORMAT'
     --date='$GIT_DATE_FORMAT'
-    $REVERSE"
+    $REVERSE $SIMPLE"
 
 
 ## For when the command has been run in a non-repo directory
