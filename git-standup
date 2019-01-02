@@ -22,6 +22,7 @@ Usage:
   -A      - List commits after this date
   -B      - List commits before this date
   -R      - Display the author date instead of the committer date
+  -J      - Jamie's simple log format in reverse date order
 
 Examples:
   git standup -a "John Doe" -w "MON-FRI" -m 3
@@ -118,9 +119,9 @@ function runStandup() {
   fi
 }
 
-while getopts "hgfsd:u:a:w:m:D:A:B:LrcR" opt; do
+while getopts "hgfsd:u:a:w:m:D:A:B:LrcR:J" opt; do
   case $opt in
-    h|d|u|a|w|m|g|D|f|s|L|r|A|B|c|R)
+    h|d|u|a|w|m|g|D|f|s|L|r|A|B|c|R|J)
       declare "option_$opt=${OPTARG:-0}"
       ;;
     \?)
@@ -163,6 +164,13 @@ INCLUDE_LINKS=
 RAN_FROM_DIR=`pwd`
 REPORT_FILE_PATH="${RAN_FROM_DIR}/git-standup-report.txt"
 STAT=
+REVERSE_DATE=
+SIMPLE_FORMAT=
+
+if [[ $option_J ]] ; then
+  REVERSE_DATE="--date-order --reverse"
+  SIMPLE_FORMAT="--format=\"%s\""
+fi
 
 # If report is to be generated, remove the existing report file if any
 if [[ ! -z $option_r ]] ; then
@@ -281,6 +289,8 @@ for DIR in ${PROJECT_DIRS}; do
     --pretty=format:'$GIT_PRETTY_FORMAT'
     --date='$GIT_DATE_FORMAT'
     --color=$COLOR
+    $REVERSE_DATE
+    $SIMPLE_FORMAT
     ${STAT}"
 
   runStandup
